@@ -1,6 +1,6 @@
 # DSP
 
-*D*istributed *S*ubscribe and *P*ublish.
+*D*istributed *S*ubscribe and *P*ublish. This is an implementation of publish/subscribe mechanism using dRuby.
 
 
 ```ruby
