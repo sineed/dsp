@@ -3,32 +3,46 @@
 *D*istributed *S*ubscribe and *P*ublish. This is an implementation of publish/subscribe mechanism using dRuby.
 
 
-```ruby
-# in instance A
-class Foo
-  include DSP::Producer
+## Usage
 
-  def call
-    broadcast(:my_channel, a: 1)
-  end
+```ruby
+
+# Starts pub/sub server in another Ruby process
+pub_sub_service = fork do
+  DSP.start_server(daemon: true)
 end
 
-# in instance B
+
 class Bar
-  extend DSP::Consumer
-  subscribe :my_channel
+  include DSP::Consumer
+  attr_reader :performed
 
   def handle(event)
-    puts event
+    @performed = true
   end
 end
 
-#in instance C
-DSP.run_server
+bar = Bar.new
+# Subscribes to the messages from the channel
+bar.subscribe(:my_channel)
 
-#then in instance A
-Foo.new.call
 
-#then in instance B stdout
-# {a: 1}
+# Publishes message from another Ruby process
+publish_service = fork do
+  class Foo
+    include DSP::Producer
+
+    def call
+      broadcast(:my_channel, a: 1)
+    end
+  end
+
+  Foo.new.call
+end
+
+puts bar.performed # true
+
+
+Process.kill("KILL", pub_sub_service)
+Process.kill("KILL", publish_service)
 ```
