@@ -3,11 +3,12 @@ require "dsp/server"
 
 module DSP
   module Consumer
+    attr_reader :subscription_server
     def subscribe(channel)
-      @server ||= DRb.start_service(nil, self)
+      @subscription_server ||= DRb.start_service(nil, self)
 
       pub_sub_server = DSP::Server.connect!
-      pub_sub_server.add_subscription(channel, @server.uri)
+      pub_sub_server.add_subscription(channel, @subscription_server.uri)
     end
   end
 end

@@ -38,6 +38,7 @@ module DSP
 
     def broadcast(channel, message)
       return unless @channels[channel]
+      puts "[#{channel}] Handling message #{message}"
 
       @channels[channel][:subscriptions].each do |s|
         DRbObject.new_with_uri(s).handle(message)
