@@ -5,14 +5,23 @@ module DSP
   class Server
     URI = "druby://localhost:9000"
 
-    def self.start!(daemon: false)
-      DRb.start_service(URI, DSP::Server.new)
-      DRb.thread.join if daemon
+    class << self
+      def start!(daemon: false, uri: URI)
+        DRb.start_service(uri, DSP::Server.new)
+
+        if daemon
+          puts "DSP started: #{DRb.uri}"
+          puts "Waiting for messages..."
+          DRb.thread.join
+        end
+      end
+
+      def connect!
+        config = DSP::Config
+        DRbObject.new_with_uri(config.uri)
+      end
     end
 
-    def self.connect!
-      DRbObject.new_with_uri(URI)
-    end
 
     def initialize
       @channels = {}

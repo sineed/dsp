@@ -1,6 +1,8 @@
 require "dsp"
 
 RSpec.describe DSP do
+  PUB_SUB_URI = "druby://localhost:9000"
+
   class Bar
     include DSP::Consumer
     attr_reader :bared
@@ -29,7 +31,7 @@ RSpec.describe DSP do
 
   around(:each) do |example|
     pub_sub_process = fork do
-      DSP.start_server(daemon: true)
+      DSP.start_server(daemon: true, uri: PUB_SUB_URI)
     end
 
     example.run
@@ -38,12 +40,19 @@ RSpec.describe DSP do
   end
 
   it "works" do
+    DSP.configure do |c|
+      c.uri = PUB_SUB_URI
+    end
     bar = Bar.new
     baz = Baz.new
     bar.subscribe(:my_channel)
     baz.subscribe(:my_channel)
 
     producer_process = fork do
+      DSP.configure do |c|
+        c.uri = PUB_SUB_URI
+      end
+
       class Foo
         include DSP::Producer
 

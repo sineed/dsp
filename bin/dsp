@@ -3,6 +3,8 @@ $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 
 require "dsp"
 
-puts "DSP started"
-puts "Waiting for messages..."
-DSP.start_server(daemon: true)
+options = {
+  daemon: true
+}
+
+DSP.start_server(options)
