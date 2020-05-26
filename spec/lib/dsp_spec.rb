@@ -11,7 +11,7 @@ RSpec.describe DSP do
       @bared = false
     end
 
-    def handle(message)
+    def handle(channel, message)
       @bared = true
     end
   end
@@ -24,8 +24,11 @@ RSpec.describe DSP do
       @bazed = false
     end
 
-    def handle(message)
-      @bazed = message
+    def handle(channel, message)
+      case channel
+      when :foo then @bazed = message
+      when :bar then @bazed = :bar
+      end
     end
   end
 
@@ -33,6 +36,8 @@ RSpec.describe DSP do
     pub_sub_process = fork do
       DSP.start_server(daemon: true, uri: PUB_SUB_URI)
     end
+
+    sleep(0.01)
 
     example.run
 
@@ -45,8 +50,9 @@ RSpec.describe DSP do
     end
     bar = Bar.new
     baz = Baz.new
-    bar.subscribe(:my_channel)
-    baz.subscribe(:my_channel)
+    bar.subscribe(:foo)
+    baz.subscribe(:foo)
+    baz.subscribe(:bar)
 
     producer_process = fork do
       DSP.configure do |c|
@@ -57,7 +63,7 @@ RSpec.describe DSP do
         include DSP::Producer
 
         def call
-          broadcast(:my_channel, a: 1)
+          broadcast(:foo, a: 1)
         end
       end
 
@@ -68,5 +74,28 @@ RSpec.describe DSP do
 
     expect(bar.bared).to be_truthy
     expect(baz.bazed).to eq({a: 1})
+
+
+    producer_process = fork do
+      DSP.configure do |c|
+        c.uri = PUB_SUB_URI
+      end
+
+      class Foo
+        include DSP::Producer
+
+        def call
+          broadcast(:bar, b: 2)
+        end
+      end
+
+      Foo.new.call
+    end
+
+    Process.wait(producer_process)
+
+
+    expect(bar.bared).to be_truthy
+    expect(baz.bazed).to eq :bar
   end
 end

@@ -4,6 +4,7 @@ require "dsp/server"
 module DSP
   module Consumer
     attr_reader :subscription_server
+
     def subscribe(channel)
       @subscription_server ||= DRb.start_service(nil, self)
 

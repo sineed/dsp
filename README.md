@@ -17,7 +17,7 @@ class Bar
   include DSP::Consumer
   attr_reader :performed
 
-  def handle(event)
+  def handle(channel, event)
     @performed = true
   end
 end

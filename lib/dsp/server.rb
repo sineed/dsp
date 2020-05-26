@@ -41,7 +41,7 @@ module DSP
       puts "[#{channel}] Handling message #{message}"
 
       @channels[channel][:subscriptions].each do |s|
-        DRbObject.new_with_uri(s).handle(message)
+        DRbObject.new_with_uri(s).handle(channel, message)
       end
     end
   end
